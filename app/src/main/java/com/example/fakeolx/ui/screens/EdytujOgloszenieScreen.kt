@@ -106,8 +106,8 @@ fun EdytujOgloszenieScreen(
 
     val background = Brush.verticalGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.32f),
-            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.18f),
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f),
             MaterialTheme.colorScheme.background
         )
     )

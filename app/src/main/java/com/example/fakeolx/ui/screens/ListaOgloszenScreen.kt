@@ -82,8 +82,8 @@ fun ListaOgloszenScreen(
 
     val background = Brush.verticalGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.32f),
-            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.18f),
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f),
             MaterialTheme.colorScheme.background
         )
     )
@@ -212,7 +212,7 @@ fun ListaOgloszenScreen(
                             icon = Icons.Default.Work,
                             colors = listOf(
                                 MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.onPrimaryContainer
+                                MaterialTheme.colorScheme.secondary
                             ),
                             onClick = { ogloszeniaViewModel.filterByKategoria(Kategoria.PRACA.displayName) }
                         )
@@ -224,7 +224,7 @@ fun ListaOgloszenScreen(
                             icon = Icons.Default.School,
                             colors = listOf(
                                 MaterialTheme.colorScheme.tertiary,
-                                MaterialTheme.colorScheme.onTertiaryContainer
+                                MaterialTheme.colorScheme.secondary
                             ),
                             onClick = { ogloszeniaViewModel.filterByKategoria(Kategoria.KOREPETYCJE.displayName) }
                         )

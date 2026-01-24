@@ -38,7 +38,7 @@ class OgloszeniaViewModel : ViewModel() {
         if (error is FirebaseFirestoreException &&
             error.code == FirebaseFirestoreException.Code.FAILED_PRECONDITION
         ) {
-            return "Brakuje indeksu w Firestore dla tego filtra."
+            return "Nie udało się pobrać listy ogłoszeń."
         }
         return error.message ?: "Błąd pobierania"
     }
