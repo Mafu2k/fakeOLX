@@ -7,6 +7,7 @@ enum class Kategoria(val displayName: String) {
     DOM_OGROD("Dom i Ogród"),
     MODA("Moda"),
     SPORT("Sport i Hobby"),
+    KOREPETYCJE("Korepetycje"),
     PRACA("Praca"),
     INNE("Inne");
 

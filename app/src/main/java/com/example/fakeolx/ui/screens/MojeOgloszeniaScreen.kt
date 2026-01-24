@@ -47,7 +47,7 @@ fun MojeOgloszeniaScreen(
 
     val background = Brush.verticalGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
             MaterialTheme.colorScheme.background
         )
     )

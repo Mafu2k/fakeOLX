@@ -15,6 +15,9 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,8 +46,11 @@ fun EdytujOgloszenieScreen(
     var tresc by remember { mutableStateOf("") }
     var cena by remember { mutableStateOf("") }
     var miasto by remember { mutableStateOf("") }
+    var specjalizacja by remember { mutableStateOf("") }
+    var tryb by remember { mutableStateOf("") }
     var selectedKategoria by remember { mutableStateOf(Kategoria.INNE.displayName) }
     var expanded by remember { mutableStateOf(false) }
+    var expandedTryb by remember { mutableStateOf(false) }
     var isLoaded by remember { mutableStateOf(false) }
 
     LaunchedEffect(ogloszenieId) {
@@ -58,9 +64,20 @@ fun EdytujOgloszenieScreen(
                 tresc = it.tresc
                 cena = it.cena.toString()
                 miasto = it.miasto
+                specjalizacja = it.specjalizacja
+                tryb = it.tryb
                 selectedKategoria = it.kategoria
                 isLoaded = true
             }
+        }
+    }
+
+    LaunchedEffect(selectedKategoria) {
+        val isExtra = selectedKategoria == Kategoria.PRACA.displayName ||
+            selectedKategoria == Kategoria.KOREPETYCJE.displayName
+        if (!isExtra) {
+            specjalizacja = ""
+            tryb = ""
         }
     }
 
@@ -71,9 +88,25 @@ fun EdytujOgloszenieScreen(
         }
     }
 
+    val isPraca = selectedKategoria == Kategoria.PRACA.displayName
+    val isKorepetycje = selectedKategoria == Kategoria.KOREPETYCJE.displayName
+    val showExtra = isPraca || isKorepetycje
+    val specjalizacjaLabel = if (isPraca) "Stanowisko" else "Przedmiot"
+    val trybLabel = if (isPraca) "Tryb pracy" else "Tryb zajęć"
+    val trybOptions = if (isPraca) {
+        listOf("Zdalnie", "Hybryda", "Stacjonarnie")
+    } else {
+        listOf("Online", "Stacjonarnie", "Hybryda")
+    }
+    val cenaLabel = when {
+        isKorepetycje -> "Stawka (zł/h)"
+        isPraca -> "Wynagrodzenie (zł)"
+        else -> "Cena (zł)"
+    }
+
     val background = Brush.verticalGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
             MaterialTheme.colorScheme.background
         )
     )
@@ -178,7 +211,7 @@ fun EdytujOgloszenieScreen(
                                 OutlinedTextField(
                                     value = cena,
                                     onValueChange = { cena = it },
-                                    label = { Text("Cena (zł)") },
+                                    label = { Text(cenaLabel) },
                                     leadingIcon = { Icon(Icons.Default.AttachMoney, null) },
                                     modifier = Modifier.fillMaxWidth(),
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -193,6 +226,55 @@ fun EdytujOgloszenieScreen(
                                     modifier = Modifier.fillMaxWidth(),
                                     singleLine = true
                                 )
+
+                                if (showExtra) {
+                                    OutlinedTextField(
+                                        value = specjalizacja,
+                                        onValueChange = { specjalizacja = it },
+                                        label = { Text(specjalizacjaLabel) },
+                                        leadingIcon = {
+                                            Icon(
+                                                if (isPraca) Icons.Default.Work else Icons.Default.School,
+                                                null
+                                            )
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        singleLine = true
+                                    )
+
+                                    ExposedDropdownMenuBox(
+                                        expanded = expandedTryb,
+                                        onExpandedChange = { expandedTryb = it }
+                                    ) {
+                                        OutlinedTextField(
+                                            value = tryb,
+                                            onValueChange = {},
+                                            readOnly = true,
+                                            label = { Text(trybLabel) },
+                                            leadingIcon = { Icon(Icons.Default.Tune, null) },
+                                            trailingIcon = {
+                                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTryb)
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .menuAnchor()
+                                        )
+                                        ExposedDropdownMenu(
+                                            expanded = expandedTryb,
+                                            onDismissRequest = { expandedTryb = false }
+                                        ) {
+                                            trybOptions.forEach { opcja ->
+                                                DropdownMenuItem(
+                                                    text = { Text(opcja) },
+                                                    onClick = {
+                                                        tryb = opcja
+                                                        expandedTryb = false
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
 
                                 OutlinedTextField(
                                     value = tresc,
@@ -222,6 +304,8 @@ fun EdytujOgloszenieScreen(
                                             kategoria = selectedKategoria,
                                             cena = cenaDouble,
                                             miasto = miasto,
+                                            specjalizacja = specjalizacja,
+                                            tryb = tryb,
                                             zdjecieUrl = ogloszenie?.zdjecieUrl ?: ""
                                         )
                                     },

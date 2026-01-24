@@ -13,5 +13,7 @@ data class Ogloszenie(
     val autorEmail: String = "",
     val zdjecieUrl: String = "",
     val dataUtworzenia: Timestamp = Timestamp.now(),
-    val miasto: String = ""
+    val miasto: String = "",
+    val specjalizacja: String = "",
+    val tryb: String = ""
 )

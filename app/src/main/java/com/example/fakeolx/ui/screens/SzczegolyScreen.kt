@@ -13,6 +13,9 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +26,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.fakeolx.data.model.Kategoria
 import com.example.fakeolx.navigation.Screen
 import com.example.fakeolx.ui.components.InfoRow
 import com.example.fakeolx.ui.components.PricePill
@@ -59,7 +63,7 @@ fun SzczegolyScreen(
 
     val background = Brush.verticalGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
             MaterialTheme.colorScheme.background
         )
     )
@@ -121,6 +125,10 @@ fun SzczegolyScreen(
                 else -> {
                     ogloszenie?.let { ogl ->
                         val miastoLabel = ogl.miasto.ifBlank { "Online" }
+                        val isPraca = ogl.kategoria == Kategoria.PRACA.displayName
+                        val isKorepetycje = ogl.kategoria == Kategoria.KOREPETYCJE.displayName
+                        val specjalizacjaLabel = if (isPraca) "Stanowisko" else "Przedmiot"
+                        val trybLabel = if (isPraca) "Tryb pracy" else "Tryb zajęć"
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -211,6 +219,20 @@ fun SzczegolyScreen(
                                         label = "Kategoria",
                                         value = ogl.kategoria
                                     )
+                                    if ((isPraca || isKorepetycje) && ogl.specjalizacja.isNotBlank()) {
+                                        InfoRow(
+                                            icon = if (isPraca) Icons.Default.Work else Icons.Default.School,
+                                            label = specjalizacjaLabel,
+                                            value = ogl.specjalizacja
+                                        )
+                                    }
+                                    if ((isPraca || isKorepetycje) && ogl.tryb.isNotBlank()) {
+                                        InfoRow(
+                                            icon = Icons.Default.Tune,
+                                            label = trybLabel,
+                                            value = ogl.tryb
+                                        )
+                                    }
                                     InfoRow(
                                         icon = Icons.Default.Place,
                                         label = "Miasto",

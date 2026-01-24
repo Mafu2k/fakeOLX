@@ -90,6 +90,8 @@ class OgloszeniaViewModel : ViewModel() {
         kategoria: String,
         cena: Double,
         miasto: String,
+        specjalizacja: String = "",
+        tryb: String = "",
         zdjecieUrl: String = ""
     ) {
         val user = authRepository.currentUser
@@ -109,6 +111,8 @@ class OgloszeniaViewModel : ViewModel() {
             kategoria = kategoria,
             cena = cena,
             miasto = miasto,
+            specjalizacja = specjalizacja,
+            tryb = tryb,
             autorId = user.uid,
             autorEmail = user.email ?: "",
             zdjecieUrl = zdjecieUrl
@@ -133,6 +137,8 @@ class OgloszeniaViewModel : ViewModel() {
         kategoria: String,
         cena: Double,
         miasto: String,
+        specjalizacja: String,
+        tryb: String,
         zdjecieUrl: String
     ) {
         val user = authRepository.currentUser ?: return
@@ -144,6 +150,8 @@ class OgloszeniaViewModel : ViewModel() {
             kategoria = kategoria,
             cena = cena,
             miasto = miasto,
+            specjalizacja = specjalizacja,
+            tryb = tryb,
             autorId = user.uid,
             autorEmail = user.email ?: "",
             zdjecieUrl = zdjecieUrl
