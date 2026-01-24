@@ -155,10 +155,8 @@ fun ListaOgloszenScreen(
                 onClick = { navController.navigate(Screen.DodajOgloszenie.route) },
                 icon = { Icon(Icons.Default.Add, null) },
                 text = { Text("Dodaj") },
-                colors = FloatingActionButtonDefaults.extendedFloatingActionButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             )
         }
     ) { padding ->
