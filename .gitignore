@@ -1,0 +1,9 @@
+.gradle/
+.kotlin/
+.zencoder/
+**/build/
+local.properties
+.idea/
+*.iml
+Thumbs.db
+.DS_Store
