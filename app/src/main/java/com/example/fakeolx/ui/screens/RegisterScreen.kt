@@ -56,8 +56,8 @@ fun RegisterScreen(
 
     val background = Brush.verticalGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.28f),
-            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.18f),
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.36f),
+            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.22f),
             MaterialTheme.colorScheme.background
         )
     )
