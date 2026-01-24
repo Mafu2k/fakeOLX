@@ -12,6 +12,12 @@ class OgloszeniaRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val collection = firestore.collection("ogloszenia")
 
+    private fun sortByNewest(items: List<Ogloszenie>): List<Ogloszenie> {
+        return items.sortedByDescending { ogloszenie ->
+            ogloszenie.dataUtworzenia.seconds * 1_000_000_000L + ogloszenie.dataUtworzenia.nanoseconds
+        }
+    }
+
     fun getAllOgloszenia(): Flow<List<Ogloszenie>> = callbackFlow {
         val listener = collection
             .orderBy("dataUtworzenia", Query.Direction.DESCENDING)
@@ -31,7 +37,6 @@ class OgloszeniaRepository {
     fun getOgloszeniaBykategoria(kategoria: String): Flow<List<Ogloszenie>> = callbackFlow {
         val listener = collection
             .whereEqualTo("kategoria", kategoria)
-            .orderBy("dataUtworzenia", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
@@ -40,7 +45,7 @@ class OgloszeniaRepository {
                 val ogloszenia = snapshot?.documents?.mapNotNull { doc ->
                     doc.toObject(Ogloszenie::class.java)?.copy(id = doc.id)
                 } ?: emptyList()
-                trySend(ogloszenia)
+                trySend(sortByNewest(ogloszenia))
             }
         awaitClose { listener.remove() }
     }
@@ -48,7 +53,6 @@ class OgloszeniaRepository {
     fun getMojeOgloszenia(userId: String): Flow<List<Ogloszenie>> = callbackFlow {
         val listener = collection
             .whereEqualTo("autorId", userId)
-            .orderBy("dataUtworzenia", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
@@ -57,7 +61,7 @@ class OgloszeniaRepository {
                 val ogloszenia = snapshot?.documents?.mapNotNull { doc ->
                     doc.toObject(Ogloszenie::class.java)?.copy(id = doc.id)
                 } ?: emptyList()
-                trySend(ogloszenia)
+                trySend(sortByNewest(ogloszenia))
             }
         awaitClose { listener.remove() }
     }
