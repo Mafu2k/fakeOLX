@@ -5,13 +5,17 @@ import androidx.lifecycle.viewModelScope
 import com.example.fakeolx.data.model.Ogloszenie
 import com.example.fakeolx.data.repository.AuthRepository
 import com.example.fakeolx.data.repository.OgloszeniaRepository
+import com.google.firebase.firestore.FirebaseFirestoreException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 class OgloszeniaViewModel : ViewModel() {
     private val repository = OgloszeniaRepository()
     private val authRepository = AuthRepository()
+    private var ogloszeniaJob: Job? = null
 
     private val _ogloszenia = MutableStateFlow<List<Ogloszenie>>(emptyList())
     val ogloszenia: StateFlow<List<Ogloszenie>> = _ogloszenia
@@ -29,14 +33,33 @@ class OgloszeniaViewModel : ViewModel() {
         loadAllOgloszenia()
     }
 
-    fun loadAllOgloszenia() {
-        viewModelScope.launch {
-            _uiState.value = UiState.Loading
-            repository.getAllOgloszenia().collect { lista ->
-                _ogloszenia.value = lista
-                _uiState.value = UiState.Success
-            }
+    private fun mapErrorMessage(error: Throwable): String {
+        if (error is FirebaseFirestoreException &&
+            error.code == FirebaseFirestoreException.Code.FAILED_PRECONDITION
+        ) {
+            return "Brakuje indeksu w Firestore dla tego filtra."
         }
+        return error.message ?: "Błąd pobierania"
+    }
+
+    private fun observeOgloszenia(source: kotlinx.coroutines.flow.Flow<List<Ogloszenie>>) {
+        ogloszeniaJob?.cancel()
+        ogloszeniaJob = viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            source
+                .catch { error ->
+                    _ogloszenia.value = emptyList()
+                    _uiState.value = UiState.Error(mapErrorMessage(error))
+                }
+                .collect { lista ->
+                    _ogloszenia.value = lista
+                    _uiState.value = UiState.Success
+                }
+        }
+    }
+
+    fun loadAllOgloszenia() {
+        observeOgloszenia(repository.getAllOgloszenia())
     }
 
     fun filterByKategoria(kategoria: String?) {
@@ -44,25 +67,13 @@ class OgloszeniaViewModel : ViewModel() {
         if (kategoria == null) {
             loadAllOgloszenia()
         } else {
-            viewModelScope.launch {
-                _uiState.value = UiState.Loading
-                repository.getOgloszeniaBykategoria(kategoria).collect { lista ->
-                    _ogloszenia.value = lista
-                    _uiState.value = UiState.Success
-                }
-            }
+            observeOgloszenia(repository.getOgloszeniaBykategoria(kategoria))
         }
     }
 
     fun loadMojeOgloszenia() {
         val userId = authRepository.currentUser?.uid ?: return
-        viewModelScope.launch {
-            _uiState.value = UiState.Loading
-            repository.getMojeOgloszenia(userId).collect { lista ->
-                _ogloszenia.value = lista
-                _uiState.value = UiState.Success
-            }
-        }
+        observeOgloszenia(repository.getMojeOgloszenia(userId))
     }
 
     fun selectOgloszenie(ogloszenieId: String) {
@@ -84,6 +95,8 @@ class OgloszeniaViewModel : ViewModel() {
         kategoria: String,
         cena: Double,
         miasto: String,
+        specjalizacja: String = "",
+        tryb: String = "",
         zdjecieUrl: String = ""
     ) {
         val user = authRepository.currentUser
@@ -103,6 +116,8 @@ class OgloszeniaViewModel : ViewModel() {
             kategoria = kategoria,
             cena = cena,
             miasto = miasto,
+            specjalizacja = specjalizacja,
+            tryb = tryb,
             autorId = user.uid,
             autorEmail = user.email ?: "",
             zdjecieUrl = zdjecieUrl
@@ -126,6 +141,8 @@ class OgloszeniaViewModel : ViewModel() {
         kategoria: String,
         cena: Double,
         miasto: String,
+        specjalizacja: String,
+        tryb: String,
         zdjecieUrl: String
     ) {
         val user = authRepository.currentUser ?: return
@@ -137,6 +154,8 @@ class OgloszeniaViewModel : ViewModel() {
             kategoria = kategoria,
             cena = cena,
             miasto = miasto,
+            specjalizacja = specjalizacja,
+            tryb = tryb,
             autorId = user.uid,
             autorEmail = user.email ?: "",
             zdjecieUrl = zdjecieUrl

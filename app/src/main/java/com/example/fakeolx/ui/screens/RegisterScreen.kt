@@ -54,10 +54,17 @@ fun RegisterScreen(
 
     val background = Brush.verticalGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
-            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.14f),
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.36f),
+            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.22f),
             MaterialTheme.colorScheme.background
         )
+    )
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        focusedLabelColor = MaterialTheme.colorScheme.primary,
+        cursorColor = MaterialTheme.colorScheme.primary,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+        focusedContainerColor = MaterialTheme.colorScheme.surface
     )
 
     Scaffold(containerColor = Color.Transparent) { padding ->
@@ -112,7 +119,8 @@ fun RegisterScreen(
                                 leadingIcon = { Icon(Icons.Default.Email, null) },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                                colors = textFieldColors
                             )
 
                             OutlinedTextField(
@@ -122,7 +130,8 @@ fun RegisterScreen(
                                 leadingIcon = { Icon(Icons.Default.Lock, null) },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
-                                visualTransformation = PasswordVisualTransformation()
+                                visualTransformation = PasswordVisualTransformation(),
+                                colors = textFieldColors
                             )
 
                             OutlinedTextField(
@@ -132,7 +141,8 @@ fun RegisterScreen(
                                 leadingIcon = { Icon(Icons.Default.Lock, null) },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
-                                visualTransformation = PasswordVisualTransformation()
+                                visualTransformation = PasswordVisualTransformation(),
+                                colors = textFieldColors
                             )
 
                             if (password.isNotEmpty() && confirmPassword.isNotEmpty() && password != confirmPassword) {
