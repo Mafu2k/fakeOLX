@@ -1,6 +1,5 @@
 ﻿package com.example.fakeolx.data.model
 
-//Enum kategorii
 enum class Kategoria(val displayName: String) {
     ELEKTRONIKA("Elektronika"),
     MOTORYZACJA("Motoryzacja"),

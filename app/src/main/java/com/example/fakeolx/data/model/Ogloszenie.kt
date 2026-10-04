@@ -2,7 +2,6 @@ package com.example.fakeolx.data.model
 
 import com.google.firebase.Timestamp
 
-//Model ogloszenia
 data class Ogloszenie(
     val id: String = "",
     val tytul: String = "",

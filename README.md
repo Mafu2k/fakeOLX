@@ -1,59 +1,35 @@
 # fakeOLX
 
-Aplikacja mobilna na Androida wzorowana na serwisie ogłoszeniowym OLX. Umożliwia
-rejestrację, logowanie oraz zarządzanie ogłoszeniami — przeglądanie, dodawanie,
-edycję i usuwanie własnych wpisów. Napisana w Kotlinie z użyciem Jetpack Compose
-w architekturze MVVM.
+Mała aplikacja na Androida w stylu OLX. Po założeniu konta można przeglądać ogłoszenia innych
+osób, filtrować je po kategoriach i wystawiać własne. Swoje ogłoszenia można potem edytować
+albo usuwać w zakładce „Moje ogłoszenia”.
 
-## Funkcjonalności
+Backendu nie pisałem od zera. Logowanie i rejestracja działają na Firebase Authentication,
+a ogłoszenia i profile użytkowników leżą w Cloud Firestore (kolekcje `ogloszenia` i `users`).
 
-- Rejestracja i logowanie użytkownika
-- Lista wszystkich ogłoszeń
-- Szczegóły pojedynczego ogłoszenia
-- Dodawanie nowego ogłoszenia (z kategorią)
-- Edycja i usuwanie własnych ogłoszeń („Moje ogłoszenia")
-- Podział ogłoszeń na kategorie
+## Technologie
 
-## Stack
-
-- Kotlin
-- Jetpack Compose (UI deklaratywne)
-- Architektura MVVM (ViewModel + repozytoria)
-- Jetpack Navigation (NavGraph)
-- Gradle (Kotlin DSL)
-
-## Architektura
-
-```
-com.example.fakeolx/
-├── MainActivity.kt
-├── navigation/        # NavGraph — trasy między ekranami
-├── data/
-│   ├── model/         # Ogloszenie, Kategoria, User
-│   └── repository/    # AuthRepository, OgloszeniaRepository
-└── ui/
-    ├── screens/       # Login, Register, ListaOgloszen, Szczegoly,
-    │                  #   DodajOgloszenie, EdytujOgloszenie, MojeOgloszenia
-    ├── components/     # wspólne komponenty Compose
-    ├── viewmodel/      # AuthViewModel, OgloszeniaViewModel
-    └── theme/          # kolory, typografia, kształty
-```
+Kotlin, Jetpack Compose, MVVM (ViewModel + StateFlow), Navigation Compose, Firebase Auth i Firestore.
 
 ## Uruchomienie
 
-Wymagania: Android Studio (aktualna wersja) oraz SDK Androida.
-
-Otwórz projekt w Android Studio i uruchom na emulatorze lub urządzeniu przyciskiem
-**Run**. Alternatywnie z konsoli:
+Projekt otwiera się w Android Studio i odpala jak każdą aplikację. Z terminala:
 
 ```bash
 ./gradlew assembleDebug
 ```
 
-## Autor
+W repozytorium jest `app/google-services.json` mojego projektu Firebase. Jeśli chcesz używać
+własnej bazy, podmień ten plik na swój z konsoli Firebase.
 
-Łukasz Janicki
+## Struktura
+
+- `data/model` zawiera modele `Ogloszenie`, `User` i enum `Kategoria`,
+- `data/repository` to dostęp do Firebase (`AuthRepository`, `OgloszeniaRepository`),
+- `ui/viewmodel` trzyma stan ekranów,
+- `ui/screens` to ekrany Compose,
+- `navigation/NavGraph.kt` opisuje trasy między ekranami.
 
 ## Licencja
 
-MIT — szczegóły w pliku [LICENSE](LICENSE).
+MIT

@@ -11,7 +11,6 @@ import com.example.fakeolx.ui.screens.*
 import com.example.fakeolx.ui.viewmodel.AuthViewModel
 import com.example.fakeolx.ui.viewmodel.OgloszeniaViewModel
 
-//Graf nawigacji
 @Composable
 fun NavGraph(
     navController: NavHostController,
@@ -22,7 +21,7 @@ fun NavGraph(
         navController = navController,
         startDestination = Screen.Login.route
     ) {
-        //Logowanie
+        // Logowanie
         composable(Screen.Login.route) {
             LoginScreen(
                 navController = navController,
@@ -30,7 +29,7 @@ fun NavGraph(
             )
         }
 
-        //Rejestracja
+        // Rejestracja
         composable(Screen.Register.route) {
             RegisterScreen(
                 navController = navController,
@@ -38,7 +37,7 @@ fun NavGraph(
             )
         }
 
-        //Lista ogloszen
+        // Lista ogloszen
         composable(Screen.Lista.route) {
             ListaOgloszenScreen(
                 navController = navController,
@@ -47,7 +46,7 @@ fun NavGraph(
             )
         }
 
-        //Szczegoly ogloszenia
+        // Szczegoly ogloszenia
         composable(
             route = Screen.Szczegoly.route + "/{ogloszenieId}",
             arguments = listOf(navArgument("ogloszenieId") { type = NavType.StringType })
@@ -61,7 +60,7 @@ fun NavGraph(
             )
         }
 
-        //Dodaj ogloszenie
+        // Dodaj ogloszenie
         composable(Screen.DodajOgloszenie.route) {
             DodajOgloszenieScreen(
                 navController = navController,
@@ -69,7 +68,7 @@ fun NavGraph(
             )
         }
 
-        //Edytuj ogloszenie
+        // Edytuj ogloszenie
         composable(
             route = Screen.EdytujOgloszenie.route + "/{ogloszenieId}",
             arguments = listOf(navArgument("ogloszenieId") { type = NavType.StringType })
@@ -82,7 +81,7 @@ fun NavGraph(
             )
         }
 
-        //Moje ogloszenia
+        // Moje ogloszenia
         composable(Screen.MojeOgloszenia.route) {
             MojeOgloszeniaScreen(
                 navController = navController,
@@ -93,7 +92,6 @@ fun NavGraph(
     }
 }
 
-//Ekrany
 sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Register : Screen("register")

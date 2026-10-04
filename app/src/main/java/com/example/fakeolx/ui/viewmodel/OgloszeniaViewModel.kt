@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
-//ViewModel ogloszen
 class OgloszeniaViewModel : ViewModel() {
     private val repository = OgloszeniaRepository()
     private val authRepository = AuthRepository()
@@ -59,12 +58,10 @@ class OgloszeniaViewModel : ViewModel() {
         }
     }
 
-    //Laduj wszystkie ogloszenia
     fun loadAllOgloszenia() {
         observeOgloszenia(repository.getAllOgloszenia())
     }
 
-    //Filtruj po kategorii
     fun filterByKategoria(kategoria: String?) {
         _selectedKategoria.value = kategoria
         if (kategoria == null) {
@@ -74,13 +71,11 @@ class OgloszeniaViewModel : ViewModel() {
         }
     }
 
-    //Laduj moje ogloszenia
     fun loadMojeOgloszenia() {
         val userId = authRepository.currentUser?.uid ?: return
         observeOgloszenia(repository.getMojeOgloszenia(userId))
     }
 
-    //Wybierz ogloszenie
     fun selectOgloszenie(ogloszenieId: String) {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
@@ -94,7 +89,6 @@ class OgloszeniaViewModel : ViewModel() {
         }
     }
 
-    //Dodaj ogloszenie
     fun addOgloszenie(
         tytul: String,
         tresc: String,
@@ -140,7 +134,6 @@ class OgloszeniaViewModel : ViewModel() {
         }
     }
 
-    //Aktualizuj ogloszenie
     fun updateOgloszenie(
         id: String,
         tytul: String,
@@ -179,7 +172,6 @@ class OgloszeniaViewModel : ViewModel() {
         }
     }
 
-    //Usun ogloszenie
     fun deleteOgloszenie(id: String) {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
@@ -197,7 +189,6 @@ class OgloszeniaViewModel : ViewModel() {
     }
 }
 
-//Stany UI
 sealed class UiState {
     object Idle : UiState()
     object Loading : UiState()

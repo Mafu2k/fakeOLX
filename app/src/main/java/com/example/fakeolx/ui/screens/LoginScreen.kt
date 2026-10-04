@@ -26,7 +26,6 @@ import com.example.fakeolx.ui.components.FakeOLXLogo
 import com.example.fakeolx.ui.viewmodel.AuthState
 import com.example.fakeolx.ui.viewmodel.AuthViewModel
 
-//Ekran logowania
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
@@ -43,7 +42,7 @@ fun LoginScreen(
         showContent = true
     }
 
-    //Przekierowanie po zalogowaniu
+    // Przekierowanie po zalogowaniu
     LaunchedEffect(authState) {
         if (authState is AuthState.Authenticated) {
             navController.navigate(Screen.Lista.route) {

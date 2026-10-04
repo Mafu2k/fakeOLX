@@ -8,7 +8,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.fakeolx.navigation.NavGraph
 import com.example.fakeolx.ui.theme.FakeOLXTheme
 
-//Glowna aktywnosc
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -22,7 +22,6 @@ import com.example.fakeolx.ui.viewmodel.AuthViewModel
 import com.example.fakeolx.ui.viewmodel.OgloszeniaViewModel
 import com.example.fakeolx.ui.viewmodel.UiState
 
-//Ekran moich ogloszen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MojeOgloszeniaScreen(

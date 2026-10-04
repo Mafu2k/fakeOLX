@@ -27,7 +27,6 @@ import com.example.fakeolx.ui.components.FakeOLXLogo
 import com.example.fakeolx.ui.viewmodel.AuthState
 import com.example.fakeolx.ui.viewmodel.AuthViewModel
 
-//Ekran rejestracji
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
@@ -45,7 +44,7 @@ fun RegisterScreen(
         showContent = true
     }
 
-    //Przekierowanie po rejestracji
+    // Przekierowanie po rejestracji
     LaunchedEffect(authState) {
         if (authState is AuthState.Authenticated) {
             navController.navigate(Screen.Lista.route) {

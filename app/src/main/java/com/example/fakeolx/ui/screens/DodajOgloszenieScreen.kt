@@ -30,7 +30,6 @@ import com.example.fakeolx.data.model.Kategoria
 import com.example.fakeolx.ui.viewmodel.OgloszeniaViewModel
 import com.example.fakeolx.ui.viewmodel.UiState
 
-//Ekran dodawania ogloszenia
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DodajOgloszenieScreen(

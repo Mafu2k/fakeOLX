@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-//ViewModel autoryzacji
 class AuthViewModel : ViewModel() {
     private val repository = AuthRepository()
 
@@ -31,7 +30,6 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    //Rejestracja
     fun register(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
             _authState.value = AuthState.Error("Email i hasło nie mogą być puste")
@@ -50,7 +48,6 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    //Logowanie
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
             _authState.value = AuthState.Error("Email i hasło nie mogą być puste")
@@ -69,7 +66,6 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    //Wylogowanie
     fun logout() {
         repository.logout()
         _currentUser.value = null
@@ -81,7 +77,6 @@ class AuthViewModel : ViewModel() {
     }
 }
 
-//Stany autoryzacji
 sealed class AuthState {
     object Idle : AuthState()
     object Loading : AuthState()

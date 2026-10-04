@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
-//Repozytorium ogloszen
 class OgloszeniaRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val collection = firestore.collection("ogloszenia")
@@ -19,7 +18,6 @@ class OgloszeniaRepository {
         }
     }
 
-    //Pobierz wszystkie ogloszenia
     fun getAllOgloszenia(): Flow<List<Ogloszenie>> = callbackFlow {
         val listener = collection
             .orderBy("dataUtworzenia", Query.Direction.DESCENDING)
@@ -36,7 +34,6 @@ class OgloszeniaRepository {
         awaitClose { listener.remove() }
     }
 
-    //Pobierz ogloszenia po kategorii
     fun getOgloszeniaBykategoria(kategoria: String): Flow<List<Ogloszenie>> = callbackFlow {
         val listener = collection
             .whereEqualTo("kategoria", kategoria)
@@ -53,7 +50,6 @@ class OgloszeniaRepository {
         awaitClose { listener.remove() }
     }
 
-    //Pobierz moje ogloszenia
     fun getMojeOgloszenia(userId: String): Flow<List<Ogloszenie>> = callbackFlow {
         val listener = collection
             .whereEqualTo("autorId", userId)
@@ -70,7 +66,6 @@ class OgloszeniaRepository {
         awaitClose { listener.remove() }
     }
 
-    //Pobierz ogloszenie po id
     suspend fun getOgloszenieById(id: String): Result<Ogloszenie> {
         return try {
             val doc = collection.document(id).get().await()
@@ -85,7 +80,6 @@ class OgloszeniaRepository {
         }
     }
 
-    //Dodaj ogloszenie
     suspend fun addOgloszenie(ogloszenie: Ogloszenie): Result<String> {
         return try {
             val docRef = collection.add(ogloszenie).await()
@@ -95,7 +89,6 @@ class OgloszeniaRepository {
         }
     }
 
-    //Aktualizuj ogloszenie
     suspend fun updateOgloszenie(id: String, ogloszenie: Ogloszenie): Result<Unit> {
         return try {
             collection.document(id).set(ogloszenie).await()
@@ -105,7 +98,6 @@ class OgloszeniaRepository {
         }
     }
 
-    //Usun ogloszenie
     suspend fun deleteOgloszenie(id: String): Result<Unit> {
         return try {
             collection.document(id).delete().await()

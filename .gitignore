@@ -1,6 +1,5 @@
 .gradle/
 .kotlin/
-.zencoder/
 **/build/
 local.properties
 .idea/

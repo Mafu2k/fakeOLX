@@ -47,7 +47,6 @@ import com.example.fakeolx.ui.viewmodel.AuthViewModel
 import com.example.fakeolx.ui.viewmodel.OgloszeniaViewModel
 import com.example.fakeolx.ui.viewmodel.UiState
 
-//Ekran listy ogloszen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListaOgloszenScreen(
@@ -333,7 +332,6 @@ fun ListaOgloszenScreen(
     }
 }
 
-//Karta ogloszenia
 @Composable
 fun OgloszenieCard(
     ogloszenie: Ogloszenie,

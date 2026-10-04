@@ -37,7 +37,6 @@ import com.example.fakeolx.ui.viewmodel.UiState
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-//Ekran szczegolowy ogloszenia
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SzczegolyScreen(
