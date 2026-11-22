@@ -25,6 +25,11 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = Cream,
     surfaceVariant = Mocha,
     onSurfaceVariant = CoffeeMuted,
+    surfaceContainerLowest = CoffeeBlack,
+    surfaceContainerLow = Espresso,
+    surfaceContainer = Espresso,
+    surfaceContainerHigh = Mocha,
+    surfaceContainerHighest = Cocoa,
     outline = CoffeeOutline
 )
 
@@ -53,7 +58,6 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun FakeOLXTheme(
     darkTheme: Boolean = true,
-    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
