@@ -164,10 +164,7 @@ fun ProfilScreen(
             onDismissRequest = { openDialog = null },
             title = { Text("fakeOLX ${BuildConfig.VERSION_NAME}") },
             text = {
-                Text(
-                    "Aplikacja z ogłoszeniami lokalnymi: sprzedaż rzeczy, oferty pracy i korepetycje. " +
-                        "Projekt na laboratorium z Zaawansowanych technik programowania."
-                )
+                Text("Aplikacja z ogłoszeniami lokalnymi: sprzedaż rzeczy, oferty pracy i korepetycje.")
             },
             confirmButton = {
                 TextButton(onClick = { openDialog = null }) { Text("Zamknij") }
