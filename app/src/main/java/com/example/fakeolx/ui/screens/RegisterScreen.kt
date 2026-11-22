@@ -1,188 +1,157 @@
-﻿package com.example.fakeolx.ui.screens
+package com.example.fakeolx.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.example.fakeolx.navigation.Screen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fakeolx.ui.components.FakeOLXLogo
+import com.example.fakeolx.ui.components.PasswordField
+import com.example.fakeolx.ui.components.appBackground
 import com.example.fakeolx.ui.viewmodel.AuthState
 import com.example.fakeolx.ui.viewmodel.AuthViewModel
+import com.example.fakeolx.ui.viewmodel.MIN_PASSWORD_LENGTH
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
-    navController: NavController,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    onRegistered: () -> Unit,
+    onBack: () -> Unit
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var showContent by remember { mutableStateOf(false) }
-
-    val authState by authViewModel.authState.collectAsState()
-
-    LaunchedEffect(Unit) {
-        showContent = true
-    }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var repeatedPassword by rememberSaveable { mutableStateOf("") }
+    val authState by authViewModel.authState.collectAsStateWithLifecycle()
+    val isLoading = authState is AuthState.Loading
+    val passwordsDiffer = repeatedPassword.isNotEmpty() && password != repeatedPassword
 
     LaunchedEffect(authState) {
-        if (authState is AuthState.Authenticated) {
-            navController.navigate(Screen.Lista.route) {
-                popUpTo(Screen.Register.route) { inclusive = true }
-            }
-        }
+        if (authState is AuthState.Authenticated) onRegistered()
     }
 
-    val background = Brush.verticalGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f),
-            MaterialTheme.colorScheme.background
-        )
-    )
-    val textFieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = MaterialTheme.colorScheme.primary,
-        focusedLabelColor = MaterialTheme.colorScheme.primary,
-        cursorColor = MaterialTheme.colorScheme.primary,
-        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-        focusedContainerColor = MaterialTheme.colorScheme.surface
-    )
-
-    Scaffold(containerColor = Color.Transparent) { padding ->
-        Box(
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = {
+            TopAppBar(
+                title = { Text("Rejestracja") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Wróć do logowania")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+            )
+        }
+    ) { padding ->
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(background)
+                .background(appBackground())
                 .padding(padding)
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 24.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(18.dp)
+            FakeOLXLogo(tagline = "Załóż konto i wystaw pierwsze ogłoszenie.")
+
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                tonalElevation = 1.dp,
+                shadowElevation = 6.dp,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Wróć")
-                    }
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Rejestracja",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                }
-
-                FakeOLXLogo(tagline = "Wskocz do świata ogłoszeń.")
-
-                AnimatedVisibility(
-                    visible = showContent,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { it / 3 })
-                ) {
-                    Surface(
-                        shape = MaterialTheme.shapes.large,
-                        tonalElevation = 1.dp,
-                        shadowElevation = 6.dp,
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Adres e-mail") },
+                        placeholder = { Text("jan.kowalski@gmail.com") },
+                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                        supportingText = { Text("Będzie widoczny w Twoich ogłoszeniach jako kontakt") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        singleLine = true,
                         modifier = Modifier.fillMaxWidth()
+                    )
+
+                    PasswordField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = "Hasło",
+                        supportingText = "Minimum $MIN_PASSWORD_LENGTH znaków"
+                    )
+
+                    PasswordField(
+                        value = repeatedPassword,
+                        onValueChange = { repeatedPassword = it },
+                        label = "Powtórz hasło",
+                        supportingText = if (passwordsDiffer) "Hasła nie są takie same" else null
+                    )
+
+                    AuthMessage(authState)
+
+                    Button(
+                        onClick = { authViewModel.register(email, password, repeatedPassword) },
+                        enabled = !isLoading,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(20.dp),
-                            verticalArrangement = Arrangement.spacedBy(14.dp)
-                        ) {
-                            OutlinedTextField(
-                                value = email,
-                                onValueChange = { email = it },
-                                label = { Text("Email") },
-                                leadingIcon = { Icon(Icons.Default.Email, null) },
-                                modifier = Modifier.fillMaxWidth(),
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                                colors = textFieldColors
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(22.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
                             )
-
-                            OutlinedTextField(
-                                value = password,
-                                onValueChange = { password = it },
-                                label = { Text("Hasło") },
-                                leadingIcon = { Icon(Icons.Default.Lock, null) },
-                                modifier = Modifier.fillMaxWidth(),
-                                singleLine = true,
-                                visualTransformation = PasswordVisualTransformation(),
-                                colors = textFieldColors
-                            )
-
-                            OutlinedTextField(
-                                value = confirmPassword,
-                                onValueChange = { confirmPassword = it },
-                                label = { Text("Powtórz hasło") },
-                                leadingIcon = { Icon(Icons.Default.Lock, null) },
-                                modifier = Modifier.fillMaxWidth(),
-                                singleLine = true,
-                                visualTransformation = PasswordVisualTransformation(),
-                                colors = textFieldColors
-                            )
-
-                            if (password.isNotEmpty() && confirmPassword.isNotEmpty() && password != confirmPassword) {
-                                Text(
-                                    text = "Hasła nie są zgodne",
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-
-                            if (authState is AuthState.Error) {
-                                Text(
-                                    text = (authState as AuthState.Error).message,
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-
-                            Button(
-                                onClick = {
-                                    if (password == confirmPassword) {
-                                        authViewModel.register(email, password)
-                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(52.dp),
-                                enabled = authState !is AuthState.Loading && password == confirmPassword
-                            ) {
-                                if (authState is AuthState.Loading) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(22.dp),
-                                        color = MaterialTheme.colorScheme.onPrimary,
-                                        strokeWidth = 2.dp
-                                    )
-                                } else {
-                                    Text("Zarejestruj się")
-                                }
-                            }
+                        } else {
+                            Text("Załóż konto")
                         }
+                    }
+
+                    TextButton(
+                        onClick = onBack,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    ) {
+                        Text("Masz już konto? Zaloguj się")
                     }
                 }
             }

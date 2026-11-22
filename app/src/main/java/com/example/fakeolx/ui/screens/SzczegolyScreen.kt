@@ -1,308 +1,178 @@
-﻿package com.example.fakeolx.ui.screens
+package com.example.fakeolx.ui.screens
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Work
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.core.net.toUri
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.fakeolx.data.model.Kategoria
-import com.example.fakeolx.navigation.Screen
+import com.example.fakeolx.data.model.Ogloszenie
+import com.example.fakeolx.ui.components.CenteredMessage
 import com.example.fakeolx.ui.components.InfoRow
+import com.example.fakeolx.ui.components.LoadingIndicator
 import com.example.fakeolx.ui.components.PricePill
-import com.example.fakeolx.ui.components.formatPrice
-import com.example.fakeolx.ui.viewmodel.AuthViewModel
-import com.example.fakeolx.ui.viewmodel.OgloszeniaViewModel
-import com.example.fakeolx.ui.viewmodel.UiState
-import java.text.SimpleDateFormat
-import java.util.Locale
+import com.example.fakeolx.ui.components.appBackground
+import com.example.fakeolx.ui.components.formatDate
+import com.example.fakeolx.ui.components.priceLabel
+import com.example.fakeolx.ui.components.specjalizacjaLabel
+import com.example.fakeolx.ui.components.trybLabel
+import com.example.fakeolx.ui.viewmodel.SzczegolyState
+import com.example.fakeolx.ui.viewmodel.SzczegolyViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SzczegolyScreen(
-    navController: NavController,
-    ogloszenieId: String,
-    authViewModel: AuthViewModel,
-    ogloszeniaViewModel: OgloszeniaViewModel
+    viewModel: SzczegolyViewModel,
+    onBack: () -> Unit,
+    onEdit: (String) -> Unit,
+    onDeleted: () -> Unit
 ) {
-    val ogloszenie by ogloszeniaViewModel.selectedOgloszenie.collectAsState()
-    val uiState by ogloszeniaViewModel.uiState.collectAsState()
-    val currentUser by authViewModel.currentUser.collectAsState()
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val isUlubione by viewModel.isUlubione.collectAsStateWithLifecycle()
+    val isDeleted by viewModel.isDeleted.collectAsStateWithLifecycle()
+    val message by viewModel.message.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    val loaded = state as? SzczegolyState.Loaded
 
-    LaunchedEffect(ogloszenieId) {
-        ogloszeniaViewModel.selectOgloszenie(ogloszenieId)
+    LaunchedEffect(isDeleted) {
+        if (isDeleted) onDeleted()
     }
-
-    LaunchedEffect(uiState) {
-        if (uiState is UiState.Success && ogloszenie == null) {
-            navController.navigateUp()
+    LaunchedEffect(message) {
+        message?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.messageShown()
         }
     }
 
-    val background = Brush.verticalGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f),
-            MaterialTheme.colorScheme.background
-        )
-    )
-
     Scaffold(
         containerColor = Color.Transparent,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Szczegóły ogłoszenia") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Wróć")
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Wróć")
                     }
                 },
                 actions = {
-                    if (ogloszenie?.autorId == currentUser?.uid) {
-                        IconButton(
-                            onClick = {
-                                navController.navigate("${Screen.EdytujOgloszenie.route}/$ogloszenieId")
+                    when {
+                        loaded == null -> Unit
+                        loaded.isAuthor -> {
+                            IconButton(onClick = { onEdit(loaded.ogloszenie.id) }) {
+                                Icon(Icons.Default.Edit, contentDescription = "Edytuj ogłoszenie")
                             }
-                        ) {
-                            Icon(Icons.Default.Edit, "Edytuj")
+                            IconButton(onClick = { showDeleteDialog = true }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Usuń ogłoszenie")
+                            }
                         }
-                        IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(Icons.Default.Delete, "Usuń")
+                        else -> IconButton(onClick = viewModel::toggleUlubione) {
+                            Icon(
+                                imageVector = if (isUlubione) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                                contentDescription = if (isUlubione) "Usuń z ulubionych" else "Dodaj do ulubionych",
+                                tint = if (isUlubione) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface
+                            )
                         }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
+        },
+        bottomBar = {
+            if (loaded != null && !loaded.isAuthor) {
+                ContactBar(
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_SENDTO, "mailto:${loaded.ogloszenie.autorEmail}".toUri())
+                            .putExtra(Intent.EXTRA_SUBJECT, "fakeOLX: ${loaded.ogloszenie.tytul}")
+                        try {
+                            context.startActivity(intent)
+                        } catch (e: ActivityNotFoundException) {
+                            viewModel.showMessage("Brak aplikacji pocztowej na telefonie")
+                        }
+                    }
+                )
+            }
         }
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(background)
+                .background(appBackground())
                 .padding(padding)
         ) {
-            when (uiState) {
-                is UiState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-                is UiState.Error -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = (uiState as UiState.Error).message,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-                else -> {
-                    ogloszenie?.let { ogl ->
-                        val miastoLabel = ogl.miasto.ifBlank { "Online" }
-                        val isPraca = ogl.kategoria == Kategoria.PRACA.displayName
-                        val isKorepetycje = ogl.kategoria == Kategoria.KOREPETYCJE.displayName
-                        val specjalizacjaLabel = if (isPraca) "Stanowisko" else "Przedmiot"
-                        val trybLabel = if (isPraca) "Tryb pracy" else "Tryb zajęć"
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp)
-                                .verticalScroll(rememberScrollState()),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Surface(
-                                shape = MaterialTheme.shapes.large,
-                                tonalElevation = 1.dp,
-                                shadowElevation = 6.dp,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(220.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.BottomStart
-                                ) {
-                                    if (ogl.zdjecieUrl.isNotBlank()) {
-                                        AsyncImage(
-                                            model = ogl.zdjecieUrl,
-                                            contentDescription = null,
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier.fillMaxSize()
-                                        )
-                                    } else {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .background(
-                                                    Brush.verticalGradient(
-                                                        colors = listOf(
-                                                            MaterialTheme.colorScheme.surfaceVariant,
-                                                            MaterialTheme.colorScheme.surface
-                                                        )
-                                                    )
-                                                ),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Image,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
-                                    PricePill(
-                                        text = formatPrice(ogl.cena),
-                                        modifier = Modifier.padding(12.dp)
-                                    )
-                                }
-                            }
-
-                            Text(
-                                text = ogl.tytul,
-                                style = MaterialTheme.typography.headlineMedium
-                            )
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Place,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = miastoLabel,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-
-                            Surface(
-                                shape = MaterialTheme.shapes.large,
-                                tonalElevation = 1.dp,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    InfoRow(
-                                        icon = Icons.Default.Label,
-                                        label = "Kategoria",
-                                        value = ogl.kategoria
-                                    )
-                                    if ((isPraca || isKorepetycje) && ogl.specjalizacja.isNotBlank()) {
-                                        InfoRow(
-                                            icon = if (isPraca) Icons.Default.Work else Icons.Default.School,
-                                            label = specjalizacjaLabel,
-                                            value = ogl.specjalizacja
-                                        )
-                                    }
-                                    if ((isPraca || isKorepetycje) && ogl.tryb.isNotBlank()) {
-                                        InfoRow(
-                                            icon = Icons.Default.Tune,
-                                            label = trybLabel,
-                                            value = ogl.tryb
-                                        )
-                                    }
-                                    InfoRow(
-                                        icon = Icons.Default.Place,
-                                        label = "Miasto",
-                                        value = miastoLabel
-                                    )
-                                    InfoRow(
-                                        icon = Icons.Default.CalendarToday,
-                                        label = "Data dodania",
-                                        value = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-                                            .format(ogl.dataUtworzenia.toDate())
-                                    )
-                                }
-                            }
-
-                            Surface(
-                                shape = MaterialTheme.shapes.large,
-                                tonalElevation = 1.dp,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Text(
-                                        text = "Opis",
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                    Text(
-                                        text = ogl.tresc,
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                }
-                            }
-
-                            Surface(
-                                shape = MaterialTheme.shapes.large,
-                                tonalElevation = 1.dp,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Text(
-                                        text = "Kontakt",
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Email,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                        Text(
-                                            text = ogl.autorEmail,
-                                            style = MaterialTheme.typography.bodyMedium
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            when (val current = state) {
+                SzczegolyState.Loading -> LoadingIndicator()
+                SzczegolyState.NotFound -> CenteredMessage(
+                    text = "To ogłoszenie zostało usunięte",
+                    icon = Icons.Default.SearchOff,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+                is SzczegolyState.Error -> CenteredMessage(
+                    text = current.message,
+                    icon = Icons.Default.CloudOff,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+                is SzczegolyState.Loaded -> OgloszenieDetails(current.ogloszenie)
             }
         }
     }
@@ -310,17 +180,17 @@ fun SzczegolyScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Usuń ogłoszenie") },
-            text = { Text("Czy na pewno chcesz usunąć to ogłoszenie?") },
+            icon = { Icon(Icons.Default.Delete, contentDescription = null) },
+            title = { Text("Usunąć ogłoszenie?") },
+            text = { Text("Ogłoszenie zniknie z listy i z ulubionych innych osób. Tej operacji nie można cofnąć.") },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        ogloszeniaViewModel.deleteOgloszenie(ogloszenieId)
                         showDeleteDialog = false
-                        navController.navigateUp()
+                        viewModel.delete()
                     }
                 ) {
-                    Text("Usuń")
+                    Text("Usuń", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
@@ -329,5 +199,128 @@ fun SzczegolyScreen(
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun OgloszenieDetails(ogloszenie: Ogloszenie) {
+    val kategoria = Kategoria.fromDisplayName(ogloszenie.kategoria)
+    val miasto = ogloszenie.miasto.ifBlank { "Online" }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            shadowElevation = 6.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp)
+        ) {
+            Box(contentAlignment = Alignment.BottomStart) {
+                if (ogloszenie.zdjecieUrl.isNotBlank()) {
+                    AsyncImage(
+                        model = ogloszenie.zdjecieUrl,
+                        contentDescription = "Zdjęcie: ${ogloszenie.tytul}",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.surface)
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Image,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                PricePill(text = ogloszenie.priceLabel(), modifier = Modifier.padding(12.dp))
+            }
+        }
+
+        Text(text = ogloszenie.tytul, style = MaterialTheme.typography.headlineMedium)
+
+        DetailsSection(title = "Informacje") {
+            InfoRow(icon = Icons.AutoMirrored.Filled.Label, label = "Kategoria", value = ogloszenie.kategoria)
+            if (kategoria.wymagaSzczegolow && ogloszenie.specjalizacja.isNotBlank()) {
+                InfoRow(
+                    icon = if (kategoria == Kategoria.PRACA) Icons.Default.Work else Icons.Default.School,
+                    label = kategoria.specjalizacjaLabel,
+                    value = ogloszenie.specjalizacja
+                )
+            }
+            if (kategoria.wymagaSzczegolow && ogloszenie.tryb.isNotBlank()) {
+                InfoRow(icon = Icons.Default.Tune, label = kategoria.trybLabel, value = ogloszenie.tryb)
+            }
+            InfoRow(icon = Icons.Default.Place, label = "Miasto", value = miasto)
+            InfoRow(
+                icon = Icons.Default.CalendarToday,
+                label = "Dodano",
+                value = formatDate(ogloszenie.dataUtworzenia)
+            )
+        }
+
+        DetailsSection(title = "Opis") {
+            Text(text = ogloszenie.tresc, style = MaterialTheme.typography.bodyLarge)
+        }
+
+        DetailsSection(title = "Kontakt") {
+            InfoRow(icon = Icons.Default.Email, label = "E-mail", value = ogloszenie.autorEmail)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+}
+
+@Composable
+private fun DetailsSection(
+    title: String,
+    content: @Composable () -> Unit
+) {
+    Surface(
+        shape = MaterialTheme.shapes.large,
+        tonalElevation = 1.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(text = title, style = MaterialTheme.typography.titleMedium)
+            content()
+        }
+    }
+}
+
+@Composable
+private fun ContactBar(onClick: () -> Unit) {
+    Surface(tonalElevation = 3.dp) {
+        Button(
+            onClick = onClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .height(52.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Email, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Napisz do sprzedającego")
+            }
+        }
     }
 }

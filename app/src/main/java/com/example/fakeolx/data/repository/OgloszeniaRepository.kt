@@ -1,109 +1,84 @@
-﻿package com.example.fakeolx.data.repository
+package com.example.fakeolx.data.repository
 
+import com.example.fakeolx.data.model.Kategoria
 import com.example.fakeolx.data.model.Ogloszenie
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
 class OgloszeniaRepository {
-    private val firestore = FirebaseFirestore.getInstance()
-    private val collection = firestore.collection("ogloszenia")
+    private val collection = FirebaseFirestore.getInstance().collection("ogloszenia")
 
-    private fun sortByNewest(items: List<Ogloszenie>): List<Ogloszenie> {
-        return items.sortedByDescending { ogloszenie ->
-            ogloszenie.dataUtworzenia.seconds * 1_000_000_000L + ogloszenie.dataUtworzenia.nanoseconds
-        }
-    }
+    fun observeAll(): Flow<List<Ogloszenie>> =
+        collection.orderBy("dataUtworzenia", Query.Direction.DESCENDING).observeOgloszenia()
 
-    fun getAllOgloszenia(): Flow<List<Ogloszenie>> = callbackFlow {
-        val listener = collection
-            .orderBy("dataUtworzenia", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-                val ogloszenia = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(Ogloszenie::class.java)?.copy(id = doc.id)
-                } ?: emptyList()
-                trySend(ogloszenia)
+    // whereEqualTo + orderBy wymaga indeksu złożonego w Firestore, więc te listy sortuję po stronie aplikacji
+    fun observeByKategoria(kategoria: Kategoria): Flow<List<Ogloszenie>> =
+        collection.whereEqualTo("kategoria", kategoria.displayName)
+            .observeOgloszenia()
+            .map(::sortByNewest)
+
+    fun observeByAutor(autorId: String): Flow<List<Ogloszenie>> =
+        collection.whereEqualTo("autorId", autorId)
+            .observeOgloszenia()
+            .map(::sortByNewest)
+
+    fun observeById(id: String): Flow<Ogloszenie?> = callbackFlow {
+        val registration = collection.document(id).addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
             }
-        awaitClose { listener.remove() }
+            trySend(snapshot?.toOgloszenie())
+        }
+        awaitClose { registration.remove() }
     }
 
-    fun getOgloszeniaBykategoria(kategoria: String): Flow<List<Ogloszenie>> = callbackFlow {
-        val listener = collection
-            .whereEqualTo("kategoria", kategoria)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-                val ogloszenia = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(Ogloszenie::class.java)?.copy(id = doc.id)
-                } ?: emptyList()
-                trySend(sortByNewest(ogloszenia))
+    suspend fun getById(id: String): Result<Ogloszenie?> = runCatching {
+        collection.document(id).get().await().toOgloszenie()
+    }
+
+    suspend fun add(ogloszenie: Ogloszenie): Result<Unit> = runCatching {
+        collection.add(ogloszenie).await()
+    }
+
+    suspend fun update(id: String, ogloszenie: Ogloszenie): Result<Unit> = runCatching {
+        val editableFields = mapOf(
+            "tytul" to ogloszenie.tytul,
+            "tresc" to ogloszenie.tresc,
+            "kategoria" to ogloszenie.kategoria,
+            "cena" to ogloszenie.cena,
+            "miasto" to ogloszenie.miasto,
+            "specjalizacja" to ogloszenie.specjalizacja,
+            "tryb" to ogloszenie.tryb,
+            "zdjecieUrl" to ogloszenie.zdjecieUrl
+        )
+        collection.document(id).update(editableFields).await()
+    }
+
+    suspend fun delete(id: String): Result<Unit> = runCatching {
+        collection.document(id).delete().await()
+    }
+
+    private fun Query.observeOgloszenia(): Flow<List<Ogloszenie>> = callbackFlow {
+        val registration = addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
             }
-        awaitClose { listener.remove() }
-    }
-
-    fun getMojeOgloszenia(userId: String): Flow<List<Ogloszenie>> = callbackFlow {
-        val listener = collection
-            .whereEqualTo("autorId", userId)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-                val ogloszenia = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(Ogloszenie::class.java)?.copy(id = doc.id)
-                } ?: emptyList()
-                trySend(sortByNewest(ogloszenia))
-            }
-        awaitClose { listener.remove() }
-    }
-
-    suspend fun getOgloszenieById(id: String): Result<Ogloszenie> {
-        return try {
-            val doc = collection.document(id).get().await()
-            val ogloszenie = doc.toObject(Ogloszenie::class.java)?.copy(id = doc.id)
-            if (ogloszenie != null) {
-                Result.success(ogloszenie)
-            } else {
-                Result.failure(Exception("Ogłoszenie nie znalezione"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
+            trySend(snapshot?.documents.orEmpty().mapNotNull { it.toOgloszenie() })
         }
+        awaitClose { registration.remove() }
     }
 
-    suspend fun addOgloszenie(ogloszenie: Ogloszenie): Result<String> {
-        return try {
-            val docRef = collection.add(ogloszenie).await()
-            Result.success(docRef.id)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
+    private fun DocumentSnapshot.toOgloszenie(): Ogloszenie? =
+        toObject(Ogloszenie::class.java)?.copy(id = id)
 
-    suspend fun updateOgloszenie(id: String, ogloszenie: Ogloszenie): Result<Unit> {
-        return try {
-            collection.document(id).set(ogloszenie).await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun deleteOgloszenie(id: String): Result<Unit> {
-        return try {
-            collection.document(id).delete().await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
+    private fun sortByNewest(ogloszenia: List<Ogloszenie>): List<Ogloszenie> =
+        ogloszenia.sortedByDescending { it.dataUtworzenia }
 }

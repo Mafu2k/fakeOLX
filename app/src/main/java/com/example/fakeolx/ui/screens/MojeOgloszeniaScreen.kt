@@ -1,137 +1,84 @@
-﻿package com.example.fakeolx.ui.screens
+package com.example.fakeolx.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.example.fakeolx.navigation.Screen
-import com.example.fakeolx.ui.viewmodel.AuthViewModel
-import com.example.fakeolx.ui.viewmodel.OgloszeniaViewModel
-import com.example.fakeolx.ui.viewmodel.UiState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.fakeolx.ui.components.OgloszeniaList
+import com.example.fakeolx.ui.components.appBackground
+import com.example.fakeolx.ui.viewmodel.ListState
+import com.example.fakeolx.ui.viewmodel.MojeOgloszeniaViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MojeOgloszeniaScreen(
-    navController: NavController,
-    authViewModel: AuthViewModel,
-    ogloszeniaViewModel: OgloszeniaViewModel
+    viewModel: MojeOgloszeniaViewModel,
+    onOgloszenieClick: (String) -> Unit,
+    onAddClick: () -> Unit,
+    bottomBar: @Composable () -> Unit
 ) {
-    val ogloszenia by ogloszeniaViewModel.ogloszenia.collectAsState()
-    val uiState by ogloszeniaViewModel.uiState.collectAsState()
-    var listVisible by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        listVisible = true
-        ogloszeniaViewModel.loadMojeOgloszenia()
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            ogloszeniaViewModel.loadAllOgloszenia()
-        }
-    }
-
-    val background = Brush.verticalGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f),
-            MaterialTheme.colorScheme.background
-        )
-    )
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Moje ogłoszenia") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Wróć")
-                    }
+                title = {
+                    Text(
+                        text = when (val current = state) {
+                            is ListState.Loaded -> "Moje ogłoszenia (${current.ogloszenia.size})"
+                            else -> "Moje ogłoszenia"
+                        }
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
-        }
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onAddClick,
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text("Dodaj ogłoszenie") },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
+        },
+        bottomBar = bottomBar
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(background)
+                .background(appBackground())
                 .padding(padding)
         ) {
-            when (uiState) {
-                is UiState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-                is UiState.Error -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = (uiState as UiState.Error).message,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-                else -> {
-                    if (ogloszenia.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("Nie masz jeszcze żadnych ogłoszeń")
-                        }
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            itemsIndexed(ogloszenia, key = { _, item -> item.id }) { index, ogloszenie ->
-                                AnimatedVisibility(
-                                    visible = listVisible,
-                                    enter = fadeIn(
-                                        animationSpec = androidx.compose.animation.core.tween(
-                                            durationMillis = 280,
-                                            delayMillis = (index * 35).coerceAtMost(280)
-                                        )
-                                    ) + slideInVertically(
-                                        initialOffsetY = { it / 4 },
-                                        animationSpec = androidx.compose.animation.core.tween(
-                                            durationMillis = 280,
-                                            delayMillis = (index * 35).coerceAtMost(280)
-                                        )
-                                    )
-                                ) {
-                                    OgloszenieCard(
-                                        ogloszenie = ogloszenie,
-                                        onClick = {
-                                            navController.navigate("${Screen.Szczegoly.route}/${ogloszenie.id}")
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
+            OgloszeniaList(
+                state = state,
+                emptyMessage = "Nie masz jeszcze ogłoszeń. Dodaj pierwsze przyciskiem na dole ekranu.",
+                emptyIcon = Icons.Default.Inventory2,
+                onOgloszenieClick = onOgloszenieClick
+            ) {
+                item {
+                    Text(
+                        text = "Kliknij ogłoszenie, aby je edytować albo usunąć.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }

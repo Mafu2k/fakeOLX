@@ -1,4 +1,4 @@
-﻿package com.example.fakeolx.data.model
+package com.example.fakeolx.data.model
 
 enum class Kategoria(val displayName: String) {
     ELEKTRONIKA("Elektronika"),
@@ -10,7 +10,11 @@ enum class Kategoria(val displayName: String) {
     PRACA("Praca"),
     INNE("Inne");
 
+    val wymagaSzczegolow: Boolean
+        get() = this == PRACA || this == KOREPETYCJE
+
     companion object {
-        fun getAllKategorie(): List<String> = values().map { it.displayName }
+        fun fromDisplayName(name: String): Kategoria =
+            entries.firstOrNull { it.displayName == name } ?: INNE
     }
 }

@@ -1,9 +1,10 @@
 package com.example.fakeolx.data.model
 
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.Exclude
 
 data class Ogloszenie(
-    val id: String = "",
+    @get:Exclude val id: String = "",
     val tytul: String = "",
     val tresc: String = "",
     val kategoria: String = "",
