@@ -1,0 +1,39 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidOgloszenie(data) {
+      return data.tytul is string
+        && data.tytul.size() > 0
+        && data.tytul.size() <= 70
+        && data.tresc is string
+        && data.cena is number
+        && data.cena >= 0;
+    }
+
+    match /users/{uid} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    match /ogloszenia/{ogloszenieId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && request.resource.data.autorId == request.auth.uid
+        && isValidOgloszenie(request.resource.data);
+
+      allow update: if isSignedIn()
+        && resource.data.autorId == request.auth.uid
+        && request.resource.data.autorId == resource.data.autorId
+        && request.resource.data.dataUtworzenia == resource.data.dataUtworzenia
+        && isValidOgloszenie(request.resource.data);
+
+      allow delete: if isSignedIn() && resource.data.autorId == request.auth.uid;
+    }
+  }
+}
